@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
+        /* ===== TÜM STILLER ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: 'Inter', sans-serif;
@@ -769,7 +770,7 @@
             <h2 style="font-size:22px;font-weight:800;margin-bottom:4px;">🛍️ Sepetim</h2>
             <p style="color:#64748b;font-size:14px;margin-bottom:16px;">Sepetindeki ürünleri incele.</p>
             
-            <!-- ===== MÜŞTERİ BİLGİLERİ FORMU - SADECE SİPARİŞ VER BUTONUNDA GÖRÜNÜR ===== -->
+            <!-- ===== MÜŞTERİ BİLGİLERİ FORMU - SADECE SİPARİŞ VER BUTONUNDA ===== -->
             <div class="customer-form" id="customerForm">
                 <h4><i class="fas fa-user" style="color:#2563eb;"></i> Müşteri Bilgileri</h4>
                 <div class="form-row">
@@ -838,11 +839,11 @@
                 <button class="btn btn-danger" onclick="clearCart()">
                     <i class="fas fa-trash"></i> Temizle
                 </button>
-                <!-- PDF (Ürünler) - SADECE ÜRÜNLER, MÜŞTERİ BİLGİSİ YOK -->
-                <button class="btn btn-outline" onclick="pdfUrunler()" style="border-color:#2563eb;color:#2563eb;">
-                    <i class="fas fa-file-pdf"></i> PDF (Ürünler)
+                <!-- PDF İndir - SADECE ÜRÜNLER (Aynen korundu) -->
+                <button class="btn btn-outline" onclick="pdfIndir()" style="border-color:#2563eb;color:#2563eb;">
+                    <i class="fas fa-file-pdf"></i> PDF İndir
                 </button>
-                <!-- Sipariş Ver - Müşteri bilgilerini gösterir ve PDF oluşturur -->
+                <!-- Sipariş Ver - Müşteri bilgilerini gösterir -->
                 <button class="btn btn-primary" onclick="siparisVer()">
                     <i class="fas fa-check"></i> Sipariş Ver
                 </button>
@@ -965,7 +966,6 @@
             renderProducts();
             updateCartUI();
             updateHeroCartCount();
-            // Müşteri formu başlangıçta gizli
             document.getElementById('customerForm').classList.remove('show');
         });
 
@@ -1124,7 +1124,6 @@
         function openCart() {
             document.getElementById('cartModal').classList.add('show');
             document.body.style.overflow = 'hidden';
-            // Müşteri formunu gizle (normal sepet görünümü)
             document.getElementById('customerForm').classList.remove('show');
             renderCartModal();
         }
@@ -1132,7 +1131,6 @@
         function closeCart() {
             document.getElementById('cartModal').classList.remove('show');
             document.body.style.overflow = '';
-            // Müşteri formunu gizle
             document.getElementById('customerForm').classList.remove('show');
         }
 
@@ -1228,7 +1226,7 @@
         }
 
         // =============================================================
-        // SİPARİŞ VER - Müşteri formunu gösterir ve PDF oluşturur
+        // SİPARİŞ VER - Müşteri formunu gösterir
         // =============================================================
         function siparisVer() {
             if (cart.length === 0) {
@@ -1236,24 +1234,20 @@
                 return;
             }
             
-            // Müşteri formunu göster
             const form = document.getElementById('customerForm');
             form.classList.add('show');
-            
-            // Formu görünür yapmak için kaydır
             form.scrollIntoView({ behavior: 'smooth', block: 'center' });
             
-            // Eğer zaten doldurulmuşsa direkt devam et
             const name = document.getElementById('customerName').value.trim();
             const phone = document.getElementById('customerPhone').value.trim();
             const email = document.getElementById('customerEmail').value.trim();
             const address = document.getElementById('customerAddress').value.trim();
             
             if (name && phone && email && address) {
-                // Bilgiler doluysa direkt PDF oluştur
                 const customer = getCustomerInfo();
                 if (customer) {
-                    pdfSiparis(customer);
+                    // PDF oluştur (aynı pdfIndir fonksiyonu ile)
+                    pdfIndir();
                 }
             } else {
                 showToast('📝 Lütfen müşteri bilgilerinizi doldurun');
@@ -1261,15 +1255,23 @@
         }
 
         // =============================================================
-        // PDF (SADECE ÜRÜNLER) - Müşteri bilgisi yok
+        // PDF İNDİR - AYNEN KORUNDU (Verdiğin koddaki gibi)
         // =============================================================
-        function pdfUrunler() {
+        function pdfIndir() {
             if (cart.length === 0) {
                 showToast('⚠️ Sepet boş! PDF oluşturulamaz.');
                 return;
             }
             
-            showToast('📄 PDF (Ürünler) oluşturuluyor...');
+            showToast('📄 PDF oluşturuluyor...');
+            
+            const content = document.createElement('div');
+            content.style.padding = '30px';
+            content.style.fontFamily = 'Inter, Arial, sans-serif';
+            content.style.background = '#ffffff';
+            content.style.maxWidth = '800px';
+            content.style.margin = '0 auto';
+            content.style.color = '#1e293b';
             
             const now = new Date();
             const tarih = now.toLocaleDateString('tr-TR', {
@@ -1279,263 +1281,158 @@
                 hour: '2-digit', minute: '2-digit'
             });
             
-            const orderNo = '#VS-' + String(now.getFullYear()).slice(-2) + 
-                           String(now.getMonth()+1).padStart(2,'0') + 
-                           String(now.getDate()).padStart(2,'0') + '-' + 
-                           String(Math.floor(Math.random()*10000)).padStart(4,'0');
+            // Müşteri bilgilerini al (varsa)
+            const customerName = document.getElementById('customerName').value.trim();
+            const customerPhone = document.getElementById('customerPhone').value.trim();
+            const customerEmail = document.getElementById('customerEmail').value.trim();
+            const customerAddress = document.getElementById('customerAddress').value.trim();
+            const customerCity = document.getElementById('customerCity').value;
+            const customerZip = document.getElementById('customerZip').value.trim();
+            const customerNote = document.getElementById('customerNote').value.trim();
             
-            let tableRows = '';
-            let toplamAdet = 0;
-            let toplamFiyat = 0;
+            const hasCustomer = customerName && customerPhone && customerEmail && customerAddress;
             
-            cart.forEach((item, index) => {
-                const itemTotal = item.fiyat * item.adet;
-                toplamAdet += item.adet;
-                toplamFiyat += itemTotal;
-                tableRows += `
-                    <tr>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">${index + 1}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; font-weight: 600;">${item.ad}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; color: #6b7280;">${item.optionAd}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">${item.adet}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">${item.fiyat} TL</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right; font-weight: 700; color: #2563eb;">${itemTotal} TL</td>
-                    </tr>
+            // HTML içeriği
+            let customerHtml = '';
+            if (hasCustomer) {
+                customerHtml = `
+                    <!-- MÜŞTERİ BİLGİLERİ -->
+                    <div style="margin-bottom: 20px; background: #f8fafc; padding: 16px; border-radius: 12px; border-left: 4px solid #2563eb;">
+                        <p style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">🧑 Müşteri Bilgileri</p>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4px 20px; font-size: 13px;">
+                            <div><strong>Ad Soyad:</strong> ${customerName}</div>
+                            <div><strong>Telefon:</strong> ${customerPhone}</div>
+                            <div><strong>E-posta:</strong> ${customerEmail}</div>
+                            <div><strong>Şehir:</strong> ${customerCity || 'Belirtilmedi'}</div>
+                            <div style="grid-column: 1/3;"><strong>Adres:</strong> ${customerAddress}</div>
+                            <div><strong>Posta Kodu:</strong> ${customerZip || 'Belirtilmedi'}</div>
+                            <div style="grid-column: 1/3;"><strong>Sipariş Notu:</strong> ${customerNote || 'Yok'}</div>
+                        </div>
+                    </div>
                 `;
-            });
-            
-            const content = document.createElement('div');
-            content.style.cssText = `
-                padding: 25px;
-                font-family: Arial, Helvetica, sans-serif;
-                background: #ffffff;
-                max-width: 700px;
-                margin: 0 auto;
-                color: #1a1a2e;
-                font-size: 12px;
-                line-height: 1.5;
-            `;
-            
-            content.innerHTML = `
-                <div style="text-align:center; border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 15px;">
-                    <div style="font-size: 36px;">🛒</div>
-                    <h1 style="color: #1a1a2e; font-size: 22px; font-weight: 800; margin: 2px 0;">
-                        VITAL <span style="color:#2563eb;">SHOP</span>
-                    </h1>
-                    <p style="color: #6b7280; font-size: 12px; margin: 2px 0;">
-                        Sipariş Özeti • ${tarih} • ${saat}
-                    </p>
-                    <p style="color: #2563eb; font-size: 12px; font-weight: 600; margin: 2px 0;">
-                        Sipariş No: ${orderNo}
-                    </p>
-                </div>
-                
-                <div style="margin-bottom: 15px;">
-                    <p style="font-weight: 700; font-size: 14px; margin-bottom: 6px;">📋 Sipariş Detayları</p>
-                    <table style="width:100%; border-collapse: collapse; font-size: 11px;">
-                        <thead>
-                            <tr style="background: #f3f4f6;">
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">#</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">Ürün</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">Seçenek</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">Adet</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">Fiyat</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">Toplam</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${tableRows}
-                        </tbody>
-                    </table>
-                </div>
-                
-                <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-                    <div>
-                        <p style="margin: 0; color: #6b7280; font-size: 11px;">
-                            📦 Toplam: ${toplamAdet} adet (${cart.length} çeşit)
-                        </p>
-                    </div>
-                    <div style="text-align: right;">
-                        <div style="font-size: 12px; color: #6b7280;">TOPLAM</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #2563eb;">${toplamFiyat} TL</div>
-                    </div>
-                </div>
-                
-                <div style="margin-top: 20px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 12px;">
-                    Bu belge VITAL SHOP tarafından otomatik oluşturulmuştur.
-                    <br>Sipariş No: ${orderNo} • Teşekkür ederiz! 🙏
-                </div>
-            `;
-            
-            const opt = {
-                margin: [10, 10, 10, 10],
-                filename: `VITALSHOP-Urunler-${now.toISOString().slice(0,10)}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 1.5, backgroundColor: '#ffffff', logging: false, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            
-            html2pdf().set(opt).from(content).save()
-                .then(() => showToast('📄 PDF (Ürünler) başarıyla indirildi!'))
-                .catch(() => showToast('❌ PDF oluşturulamadı, tekrar deneyin.'));
-        }
-
-        // =============================================================
-        // PDF (SİPARİŞ) - Müşteri bilgileriyle
-        // =============================================================
-        function pdfSiparis(customer) {
-            if (cart.length === 0) {
-                showToast('⚠️ Sepet boş! PDF oluşturulamaz.');
-                return;
             }
             
-            showToast('📄 PDF (Sipariş) oluşturuluyor...');
-            
-            const now = new Date();
-            const tarih = now.toLocaleDateString('tr-TR', {
-                day: '2-digit', month: 'long', year: 'numeric'
-            });
-            const saat = now.toLocaleTimeString('tr-TR', {
-                hour: '2-digit', minute: '2-digit'
-            });
-            
-            const orderNo = '#VS-' + String(now.getFullYear()).slice(-2) + 
-                           String(now.getMonth()+1).padStart(2,'0') + 
-                           String(now.getDate()).padStart(2,'0') + '-' + 
-                           String(Math.floor(Math.random()*10000)).padStart(4,'0');
-            
-            let tableRows = '';
-            let toplamAdet = 0;
-            let toplamFiyat = 0;
-            
-            cart.forEach((item, index) => {
-                const itemTotal = item.fiyat * item.adet;
-                toplamAdet += item.adet;
-                toplamFiyat += itemTotal;
-                tableRows += `
-                    <tr>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">${index + 1}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; font-weight: 600;">${item.ad}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; color: #6b7280;">${item.optionAd}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">${item.adet}</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">${item.fiyat} TL</td>
-                        <td style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right; font-weight: 700; color: #2563eb;">${itemTotal} TL</td>
-                    </tr>
-                `;
-            });
-            
-            const content = document.createElement('div');
-            content.style.cssText = `
-                padding: 25px;
-                font-family: Arial, Helvetica, sans-serif;
-                background: #ffffff;
-                max-width: 700px;
-                margin: 0 auto;
-                color: #1a1a2e;
-                font-size: 12px;
-                line-height: 1.5;
-            `;
-            
             content.innerHTML = `
-                <div style="text-align:center; border-bottom: 3px solid #2563eb; padding-bottom: 15px; margin-bottom: 15px;">
-                    <div style="font-size: 36px;">🛒</div>
-                    <h1 style="color: #1a1a2e; font-size: 22px; font-weight: 800; margin: 2px 0;">
-                        VITAL <span style="color:#2563eb;">SHOP</span>
+                <div style="text-align:center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 20px;">
+                    <div style="font-size: 40px; margin-bottom: 4px;">🛒</div>
+                    <h1 style="color: #1e293b; font-size: 28px; font-weight: 800; margin: 0;">
+                        VITAL<span style="color:#2563eb;">SHOP</span>
                     </h1>
-                    <p style="color: #6b7280; font-size: 12px; margin: 2px 0;">
+                    <p style="color: #64748b; font-size: 14px; margin: 4px 0 0;">
                         Sipariş Özeti • ${tarih} • ${saat}
                     </p>
-                    <p style="color: #2563eb; font-size: 12px; font-weight: 600; margin: 2px 0;">
-                        Sipariş No: ${orderNo}
-                    </p>
                 </div>
                 
-                <!-- MÜŞTERİ BİLGİLERİ -->
-                <div style="margin-bottom: 15px; background: #f8fafc; padding: 12px 14px; border-radius: 8px; border-left: 4px solid #2563eb;">
-                    <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px; color: #1a1a2e;">
-                        🧑 Müşteri Bilgileri
-                    </p>
-                    <div style="font-size: 11px; line-height: 1.6;">
-                        <div><strong>Ad Soyad:</strong> ${customer.name}</div>
-                        <div><strong>Telefon:</strong> ${customer.phone}</div>
-                        <div><strong>E-posta:</strong> ${customer.email}</div>
-                        <div><strong>Şehir:</strong> ${customer.city || 'Belirtilmedi'}</div>
-                        <div><strong>Adres:</strong> ${customer.address}</div>
-                        <div><strong>Posta Kodu:</strong> ${customer.zip || 'Belirtilmedi'}</div>
-                        <div><strong>Sipariş Notu:</strong> ${customer.note || 'Yok'}</div>
-                    </div>
-                </div>
+                ${customerHtml}
                 
-                <!-- SİPARİŞ DETAYLARI -->
-                <div style="margin-bottom: 15px;">
-                    <p style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">📋 Sipariş Detayları</p>
-                    <table style="width:100%; border-collapse: collapse; font-size: 11px;">
+                <div style="margin-bottom: 20px;">
+                    <p style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">📋 Sipariş Detayları</p>
+                    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
                         <thead>
-                            <tr style="background: #f3f4f6;">
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">#</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">Ürün</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:left;">Seçenek</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:center;">Adet</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">Fiyat</th>
-                                <th style="padding: 6px 8px; border: 1px solid #d1d5db; text-align:right;">Toplam</th>
+                            <tr style="background: #f1f5f9;">
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">#</th>
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ürün</th>
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Özellik</th>
+                                <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Adet</th>
+                                <th style="padding: 10px 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Fiyat</th>
+                                <th style="padding: 10px 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Toplam</th>
                             </tr>
                         </thead>
                         <tbody>
-                            ${tableRows}
+                            ${cart.map((item, index) => `
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 10px 12px;">${index + 1}</td>
+                                    <td style="padding: 10px 12px; font-weight: 600;">${item.ad}</td>
+                                    <td style="padding: 10px 12px; color: #64748b;">${item.optionAd}</td>
+                                    <td style="padding: 10px 12px; text-align: center;">${item.adet}</td>
+                                    <td style="padding: 10px 12px; text-align: right;">${item.fiyat} TL</td>
+                                    <td style="padding: 10px 12px; text-align: right; font-weight: 600; color: #2563eb;">${item.fiyat * item.adet} TL</td>
+                                </tr>
+                            `).join('')}
                         </tbody>
                     </table>
                 </div>
                 
-                <div style="border-top: 2px solid #e5e7eb; padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
+                <div style="border-top: 2px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
                     <div>
-                        <p style="margin: 0; color: #6b7280; font-size: 11px;">
-                            📦 Toplam: ${toplamAdet} adet (${cart.length} çeşit)
+                        <p style="margin: 0; color: #64748b; font-size: 13px;">
+                            📦 Toplam Ürün: ${getCartCount()} adet
+                        </p>
+                        <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">
+                            🏷️ Farklı Ürün: ${cart.length} çeşit
                         </p>
                     </div>
                     <div style="text-align: right;">
-                        <div style="font-size: 12px; color: #6b7280;">TOPLAM</div>
-                        <div style="font-size: 24px; font-weight: 800; color: #2563eb;">${toplamFiyat} TL</div>
+                        <div style="font-size: 14px; color: #64748b;">TOPLAM</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #2563eb;">${getCartTotal()} TL</div>
                     </div>
                 </div>
                 
-                <!-- TESLİMAT ADRESİ -->
-                <div style="margin-top: 15px; padding-top: 12px; border-top: 2px solid #e5e7eb; display: flex; justify-content: space-between; font-size: 11px; color: #6b7280;">
+                ${hasCustomer ? `
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px; color: #64748b;">
                     <div>
-                        <p style="font-weight: 600; color: #1a1a2e; margin-bottom: 4px;">📦 Teslimat Adresi</p>
-                        <p style="margin: 2px 0;">${customer.name}</p>
-                        <p style="margin: 2px 0;">${customer.address}</p>
-                        <p style="margin: 2px 0;">${customer.city || ''} ${customer.zip || ''}</p>
-                        <p style="margin: 2px 0;">${customer.phone}</p>
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📦 Teslimat Adresi</p>
+                        <p style="margin: 2px 0;">${customerName}</p>
+                        <p style="margin: 2px 0;">${customerAddress}</p>
+                        <p style="margin: 2px 0;">${customerCity || ''} ${customerZip || ''}</p>
+                        <p style="margin: 2px 0;">${customerPhone}</p>
                     </div>
                     <div style="text-align: right;">
-                        <p style="font-weight: 600; color: #1a1a2e; margin-bottom: 4px;">📞 İletişim</p>
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📞 İletişim</p>
                         <p style="margin: 2px 0;">info@vitalshop.com</p>
                         <p style="margin: 2px 0;">+90 555 123 4567</p>
-                        <p style="margin: 2px 0; font-size: 10px; color: #9ca3af;">Sipariş No: ${orderNo}</p>
                     </div>
                 </div>
+                ` : `
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px; color: #64748b;">
+                    <div>
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📦 Teslimat Adresi</p>
+                        <p style="margin: 2px 0;">VITAL SHOP</p>
+                        <p style="margin: 2px 0;">İstanbul, Türkiye</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📞 İletişim</p>
+                        <p style="margin: 2px 0;">info@vitalshop.com</p>
+                        <p style="margin: 2px 0;">+90 555 123 4567</p>
+                    </div>
+                </div>
+                `}
                 
-                <div style="margin-top: 15px; text-align: center; font-size: 10px; color: #9ca3af; border-top: 1px solid #e5e7eb; padding-top: 12px;">
+                <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
                     Bu belge VITAL SHOP tarafından otomatik oluşturulmuştur.
-                    <br>Sipariş No: ${orderNo} • Teşekkür ederiz! 🙏
+                    <br>Sipariş numaranız: #VS-${String(now.getFullYear()).slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(Math.floor(Math.random()*10000)).padStart(4,'0')}
                 </div>
             `;
             
             const opt = {
-                margin: [10, 10, 10, 10],
+                margin: 10,
                 filename: `VITALSHOP-Siparis-${now.toISOString().slice(0,10)}.pdf`,
-                image: { type: 'jpeg', quality: 0.95 },
-                html2canvas: { scale: 1.5, backgroundColor: '#ffffff', logging: false, useCORS: true },
-                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { mode: 'avoid-all' }
             };
             
-            html2pdf().set(opt).from(content).save()
+            html2pdf()
+                .set(opt)
+                .from(content)
+                .save()
                 .then(() => {
-                    showToast('📄 PDF (Sipariş) başarıyla indirildi!');
-                    // PDF indikten sonra formu gizle
-                    document.getElementById('customerForm').classList.remove('show');
+                    showToast('📄 PDF başarıyla indirildi!');
                 })
-                .catch(() => showToast('❌ PDF oluşturulamadı, tekrar deneyin.'));
+                .catch((error) => {
+                    console.error('PDF hatası:', error);
+                    showToast('❌ PDF oluşturulamadı, tekrar deneyin.');
+                });
         }
 
         // =============================================================
@@ -1616,8 +1513,6 @@
         console.log('✅ VITAL SHOP hazır! 30+ ürün, çift PDF sistemi.');
         console.log('📦 ' + products.length + ' ürün, her ürün özelleştirilebilir.');
         console.log('🛒 Sepette ' + getCartCount() + ' ürün var.');
-        console.log('📄 PDF (Ürünler) - sadece sipariş detayları');
-        console.log('📄 PDF (Sipariş) - müşteri bilgileri + sipariş detayları');
     </script>
 
 </body>
