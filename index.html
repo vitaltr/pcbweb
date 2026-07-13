@@ -1,45 +1,1472 @@
 <!DOCTYPE html>
-<html>
-
+<html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Pcb paylasim</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>VITAL SHOP - Mobil E-Ticaret</title>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <!-- html2pdf Kütüphanesi (PDF için) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        /* =============================================================
+                   AÇIKLAMA: Tüm stiller mobil uyumlu olarak tasarlandı
+                   ============================================================= */
+        
+        /* ===== RESET ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #f8fafc;
+            color: #1e293b;
+            padding-top: 70px;
+            padding-bottom: 80px; /* Mobil alt bar için */
+        }
+        a { text-decoration: none; color: inherit; }
+        ul { list-style: none; }
+        img { max-width: 100%; display: block; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 16px; }
+
+        /* =============================================================
+                   AÇIKLAMA: Sabit header - mobilde küçülür
+                   ============================================================= */
+        .header {
+            position: fixed; top: 0; left: 0; right: 0;
+            background: white; border-bottom: 1px solid #e2e8f0;
+            z-index: 1000; padding: 10px 0;
+            transition: all 0.3s;
+        }
+        .header.scrolled { box-shadow: 0 4px 20px rgba(0,0,0,0.06); }
+        .header-content {
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo a {
+            display: flex; align-items: center; gap: 8px;
+            font-size: 20px; font-weight: 800;
+        }
+        .logo-text { color: #1e293b; }
+        .logo-text span { color: #2563eb; }
+
+        /* ===== MOBİL MENU ===== */
+        .nav-menu ul {
+            display: flex; gap: 16px;
+        }
+        .nav-menu a {
+            font-size: 13px; font-weight: 500; color: #475569;
+            transition: color 0.2s;
+        }
+        .nav-menu a:hover { color: #2563eb; }
+        
+        .header-actions {
+            display: flex; align-items: center; gap: 8px;
+        }
+        .header-actions button {
+            width: 36px; height: 36px; border: none;
+            background: #f1f5f9; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 15px; color: #1e293b;
+            transition: all 0.3s; position: relative;
+        }
+        .header-actions button:hover { background: #e2e8f0; }
+        
+        /* Sepet sayacı */
+        .cart-count {
+            position: absolute; top: -4px; right: -4px;
+            background: #ef4444; color: white;
+            font-size: 10px; font-weight: 700;
+            width: 20px; height: 20px; border-radius: 50%;
+            display: none; align-items: center; justify-content: center;
+            border: 2px solid white;
+        }
+        .cart-count.show { display: flex; }
+        
+        /* Mobil menu butonu */
+        .menu-btn { display: none; }
+
+        /* ===== MOBİL UYUM ===== */
+        @media (max-width: 768px) {
+            body { padding-top: 60px; }
+            .menu-btn { display: flex; }
+            .logo a { font-size: 17px; }
+            .logo-icon { font-size: 22px; }
+            
+            .nav-menu {
+                position: fixed; top: 0; right: -100%;
+                width: 280px; height: 100vh;
+                background: white; padding: 80px 24px 30px;
+                transition: right 0.3s ease;
+                box-shadow: -4px 0 30px rgba(0,0,0,0.05);
+                z-index: 999;
+            }
+            .nav-menu.open { right: 0; }
+            .nav-menu ul { flex-direction: column; gap: 16px; }
+            .nav-menu a { font-size: 16px; }
+            
+            /* Mobil overlay */
+            .menu-overlay {
+                position: fixed; inset: 0;
+                background: rgba(0,0,0,0.3);
+                z-index: 998;
+                display: none;
+            }
+            .menu-overlay.show { display: block; }
+        }
+        @media (max-width: 400px) {
+            .header-actions button { width: 32px; height: 32px; font-size: 13px; }
+            .container { padding: 0 10px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Hero bölümü - mobilde tek sütun
+                   ============================================================= */
+        .hero {
+            padding: 30px 0 40px;
+            background: linear-gradient(135deg, #f8fafc, #eef2ff);
+        }
+        .hero-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            align-items: center;
+        }
+        .hero-badge {
+            display: inline-block; background: #dbeafe; color: #2563eb;
+            padding: 3px 14px; border-radius: 50px;
+            font-size: 11px; font-weight: 600;
+            margin-bottom: 12px;
+        }
+        .hero-text h1 {
+            font-size: 36px; font-weight: 900; line-height: 1.1;
+            margin-bottom: 12px;
+        }
+        .hero-text h1 span { color: #2563eb; }
+        .hero-text p {
+            font-size: 15px; color: #64748b;
+            max-width: 450px; margin-bottom: 24px; line-height: 1.6;
+        }
+        .hero-buttons { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 30px; }
+        .btn {
+            padding: 10px 22px; border-radius: 10px;
+            font-weight: 600; font-size: 13px;
+            cursor: pointer; transition: all 0.3s; border: none;
+            display: inline-flex; align-items: center; gap: 8px;
+        }
+        .btn-primary { background: #2563eb; color: white; }
+        .btn-primary:hover { background: #1d4ed8; transform: translateY(-2px); box-shadow: 0 8px 30px rgba(37,99,235,0.3); }
+        .btn-outline { background: transparent; color: #1e293b; border: 2px solid #e2e8f0; }
+        .btn-outline:hover { border-color: #2563eb; color: #2563eb; }
+        .btn-success { background: #22c55e; color: white; }
+        .btn-success:hover { background: #16a34a; }
+        
+        .hero-stats { display: flex; gap: 30px; flex-wrap: wrap; }
+        .stat-number { font-size: 24px; font-weight: 800; color: #1e293b; display: block; }
+        .stat-label { font-size: 13px; color: #64748b; }
+        
+        .hero-image {
+            position: relative; display: flex; justify-content: center;
+        }
+        .hero-image img {
+            width: 100%; max-width: 400px;
+            border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.08);
+        }
+        .floating-card {
+            position: absolute; background: white; padding: 8px 14px;
+            border-radius: 12px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+            display: flex; align-items: center; gap: 8px;
+            font-weight: 600; font-size: 12px;
+            animation: float 3s ease-in-out infinite;
+        }
+        .floating-card i { font-size: 16px; color: #2563eb; }
+        .card-1 { top: 10%; left: -5%; animation-delay: 0s; }
+        .card-2 { bottom: 20%; right: -5%; animation-delay: 1s; }
+        @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-8px); } }
+
+        @media (max-width: 768px) {
+            .hero { padding: 20px 0 30px; }
+            .hero-content { grid-template-columns: 1fr; text-align: center; gap: 20px; }
+            .hero-text h1 { font-size: 28px; }
+            .hero-text p { margin: 0 auto 20px; font-size: 14px; }
+            .hero-buttons { justify-content: center; }
+            .hero-stats { justify-content: center; }
+            .floating-card { display: none; }
+            .hero-image img { max-width: 280px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Kategoriler - mobilde yatay kaydırmalı
+                   ============================================================= */
+        .categories { padding: 30px 0; }
+        .section-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .section-header h2 { font-size: 22px; font-weight: 800; }
+        .view-all {
+            color: #2563eb; font-weight: 600; font-size: 13px;
+            display: flex; align-items: center; gap: 6px;
+            transition: gap 0.3s;
+        }
+        .view-all:hover { gap: 10px; }
+        
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+            gap: 12px;
+        }
+        .category-card {
+            background: white; padding: 16px 12px; border-radius: 14px;
+            text-align: center; border: 1px solid #e2e8f0;
+            transition: all 0.3s; cursor: pointer;
+        }
+        .category-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.06);
+            border-color: #2563eb;
+        }
+        .category-card .icon { font-size: 28px; display: block; margin-bottom: 6px; }
+        .category-card h4 { font-size: 13px; font-weight: 600; }
+
+        @media (max-width: 400px) {
+            .categories-grid { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+            .category-card { padding: 12px 8px; }
+            .category-card .icon { font-size: 22px; }
+            .category-card h4 { font-size: 11px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Ürünler grid - mobilde 2 kolon
+                   ============================================================= */
+        .featured-products { padding: 30px 0; }
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 16px;
+        }
+        .product-card {
+            background: white; border-radius: 14px; overflow: hidden;
+            border: 1px solid #e2e8f0; transition: all 0.3s; cursor: pointer;
+        }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.06); }
+        .product-card .image-wrapper {
+            height: 160px; display: flex; align-items: center; justify-content: center;
+            padding: 12px; background: #f8fafc; position: relative;
+        }
+        .product-card .image-wrapper img { max-height: 100%; object-fit: contain; }
+        .product-card .badge {
+            position: absolute; top: 8px; left: 8px;
+            padding: 3px 10px; border-radius: 50px;
+            font-size: 9px; font-weight: 700; text-transform: uppercase;
+            color: white;
+        }
+        .product-card .badge.populer { background: #f59e0b; }
+        .product-card .badge.yeni { background: #10b981; }
+        .product-card .badge.indirim { background: #ef4444; }
+        .product-card .badge.premium { background: #8b5cf6; }
+        .product-card .badge.cok-satan { background: #ec4899; }
+        .product-card .content { padding: 12px; }
+        .product-card .content h3 { font-size: 13px; font-weight: 600; margin-bottom: 3px; }
+        .product-card .content .desc {
+            font-size: 11px; color: #64748b;
+            margin-bottom: 8px; display: -webkit-box;
+            -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .product-card .content .price-row {
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .product-card .content .price { font-size: 16px; font-weight: 700; color: #2563eb; }
+        .product-card .content .add-btn {
+            background: #2563eb; color: white; border: none;
+            padding: 5px 12px; border-radius: 6px;
+            font-size: 11px; font-weight: 600;
+            cursor: pointer; transition: all 0.3s;
+        }
+        .product-card .content .add-btn:hover { background: #1d4ed8; }
+
+        @media (max-width: 480px) {
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
+            }
+            .product-card .image-wrapper { height: 130px; padding: 8px; }
+            .product-card .content { padding: 10px; }
+            .product-card .content h3 { font-size: 12px; }
+            .product-card .content .desc { font-size: 10px; }
+            .product-card .content .price { font-size: 14px; }
+            .product-card .content .add-btn { font-size: 10px; padding: 4px 10px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Banner - mobilde tek sütun
+                   ============================================================= */
+        .banner { padding: 30px 0; }
+        .banner-content {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            border-radius: 20px; padding: 30px 24px;
+            display: grid; grid-template-columns: 2fr 1fr;
+            gap: 24px; align-items: center; color: white;
+        }
+        .banner-badge {
+            display: inline-block; background: rgba(255,255,255,0.2);
+            padding: 3px 14px; border-radius: 50px;
+            font-size: 11px; font-weight: 600;
+            margin-bottom: 8px;
+        }
+        .banner-text h2 { font-size: 28px; font-weight: 800; margin-bottom: 8px; }
+        .banner-text h2 span { text-decoration: underline; }
+        .banner-text p { opacity: 0.9; font-size: 14px; margin-bottom: 16px; }
+        .banner-text .btn-primary { background: white; color: #2563eb; }
+        .banner-text .btn-primary:hover { background: #f8fafc; }
+        .banner-image { display: flex; justify-content: center; font-size: 60px; }
+        @media (max-width: 768px) {
+            .banner-content { grid-template-columns: 1fr; text-align: center; padding: 24px 20px; }
+            .banner-text h2 { font-size: 24px; }
+            .banner-image { font-size: 48px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Footer - mobilde tek sütun
+                   ============================================================= */
+        .footer {
+            background: #0f172a; color: white;
+            padding: 40px 0 20px; margin-top: 30px;
+        }
+        .footer-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr 1fr 1.5fr;
+            gap: 30px; margin-bottom: 30px;
+        }
+        .footer-about h3 { font-size: 18px; margin-bottom: 10px; }
+        .footer-about p { opacity: 0.7; line-height: 1.6; font-size: 14px; }
+        .social-links { display: flex; gap: 10px; margin-top: 12px; }
+        .social-links a {
+            width: 36px; height: 36px; background: rgba(255,255,255,0.05);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s;
+        }
+        .social-links a:hover { background: #2563eb; }
+        .footer-links h4 { font-size: 15px; margin-bottom: 12px; }
+        .footer-links ul li { margin-bottom: 6px; }
+        .footer-links ul li a { opacity: 0.7; font-size: 13px; transition: all 0.3s; }
+        .footer-links ul li a:hover { opacity: 1; color: #2563eb; }
+        .footer-contact p { opacity: 0.7; margin-bottom: 6px; font-size: 13px; display: flex; align-items: center; gap: 8px; }
+        .footer-bottom {
+            border-top: 1px solid rgba(255,255,255,0.05);
+            padding-top: 16px; text-align: center;
+            opacity: 0.5; font-size: 13px;
+        }
+        @media (max-width: 768px) {
+            .footer-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            .footer-about { text-align: center; }
+            .social-links { justify-content: center; }
+            .footer-links { text-align: center; }
+            .footer-contact { text-align: center; }
+            .footer-contact p { justify-content: center; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Modal (Ürün Detay) - mobilde alttan açılır
+                   ============================================================= */
+        .modal-overlay {
+            position: fixed; inset: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 2000; display: none;
+            align-items: flex-end; justify-content: center;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 24px 24px 0 0;
+            max-width: 500px; width: 100%;
+            max-height: 92vh; overflow-y: auto;
+            padding: 20px 16px 24px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .modal-close {
+            text-align: right; font-size: 22px;
+            cursor: pointer; color: #64748b;
+            margin-bottom: 4px;
+        }
+        .modal-content .big-image {
+            height: 200px; display: flex;
+            align-items: center; justify-content: center;
+            background: #f8fafc; border-radius: 14px;
+            margin-bottom: 12px;
+        }
+        .modal-content .big-image img { max-height: 100%; object-fit: contain; }
+        .modal-content h2 { font-size: 20px; font-weight: 700; margin: 0; }
+        .modal-content .desc { color: #64748b; font-size: 14px; margin: 4px 0 8px; }
+        .modal-content .price { font-size: 22px; font-weight: 700; color: #2563eb; margin: 8px 0; }
+        
+        .modal-options {
+            display: grid; grid-template-columns: 1fr 1fr;
+            gap: 8px; margin: 12px 0;
+        }
+        .option-btn {
+            padding: 10px; border: 2px solid #e2e8f0;
+            border-radius: 12px; text-align: center;
+            cursor: pointer; transition: all 0.2s;
+        }
+        .option-btn.selected { border-color: #2563eb; background: #eff6ff; }
+        .option-btn .price-tag { font-size: 11px; color: #64748b; display: block; }
+        .option-btn img { width: 36px; height: 36px; object-fit: contain; margin: 0 auto 4px; }
+        
+        .quantity {
+            display: flex; align-items: center; gap: 12px;
+            margin: 12px 0;
+        }
+        .quantity button {
+            width: 38px; height: 38px; border-radius: 50%;
+            border: 2px solid #e2e8f0; background: white;
+            font-size: 18px; cursor: pointer;
+        }
+        .add-to-cart {
+            width: 100%; background: #2563eb; color: white;
+            border: none; padding: 14px; border-radius: 12px;
+            font-weight: 600; font-size: 15px; cursor: pointer;
+            margin-top: 12px;
+        }
+        .add-to-cart:hover { background: #1d4ed8; }
+
+        @media (max-width: 400px) {
+            .modal-options { grid-template-columns: 1fr 1fr; gap: 6px; }
+            .option-btn { padding: 8px; font-size: 12px; }
+            .option-btn img { width: 30px; height: 30px; }
+            .modal-content .big-image { height: 160px; }
+            .modal-content h2 { font-size: 18px; }
+            .modal-content .price { font-size: 20px; }
+        }
+
+        /* =============================================================
+                   AÇIKLAMA: Toast mesajı - mobilde altta
+                   ============================================================= */
+        .toast {
+            position: fixed; bottom: 80px; left: 50%;
+            transform: translateX(-50%);
+            background: #1e293b; color: white;
+            padding: 10px 20px; border-radius: 12px;
+            z-index: 9999; font-weight: 500; font-size: 14px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            display: none; animation: slideUp 0.3s ease;
+            max-width: 90%; text-align: center;
+        }
+        .toast.show { display: block; }
+
+        /* =============================================================
+                   AÇIKLAMA: Karanlık Mod
+                   ============================================================= */
+        body.dark-mode { background: #0f172a; color: #f8fafc; }
+        body.dark-mode .header { background: #1e293b; border-color: #334155; }
+        body.dark-mode .logo-text { color: #f8fafc; }
+        body.dark-mode .nav-menu a { color: #94a3b8; }
+        body.dark-mode .nav-menu a:hover { color: #60a5fa; }
+        body.dark-mode .header-actions button { background: #334155; color: #f8fafc; }
+        body.dark-mode .hero { background: #1e293b; }
+        body.dark-mode .hero-text h1 { color: #f8fafc; }
+        body.dark-mode .hero-text p { color: #94a3b8; }
+        body.dark-mode .stat-number { color: #f8fafc; }
+        body.dark-mode .btn-outline { color: #f8fafc; border-color: #334155; }
+        body.dark-mode .category-card { background: #1e293b; border-color: #334155; }
+        body.dark-mode .product-card { background: #1e293b; border-color: #334155; }
+        body.dark-mode .product-card .content h3 { color: #f8fafc; }
+        body.dark-mode .product-card .image-wrapper { background: #0f172a; }
+        body.dark-mode .product-card .content .desc { color: #94a3b8; }
+        body.dark-mode .section-header h2 { color: #f8fafc; }
+        body.dark-mode .modal-content { background: #1e293b; }
+        body.dark-mode .modal-content .big-image { background: #0f172a; }
+        body.dark-mode .modal-close { color: #94a3b8; }
+        body.dark-mode .option-btn { background: #1e293b; border-color: #334155; color: #f8fafc; }
+        body.dark-mode .option-btn.selected { border-color: #60a5fa; background: #1e3a5f; }
+        body.dark-mode .option-btn .price-tag { color: #94a3b8; }
+        body.dark-mode .quantity button { background: #1e293b; border-color: #334155; color: #f8fafc; }
+        body.dark-mode .cart-count { border-color: #1e293b; }
+        body.dark-mode .nav-menu { background: #1e293b; }
+        body.dark-mode .menu-overlay { background: rgba(0,0,0,0.6); }
+        body.dark-mode .modal-content .desc { color: #94a3b8; }
+
+        /* =============================================================
+                   AÇIKLAMA: Scrollbar
+                   ============================================================= */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        body.dark-mode ::-webkit-scrollbar-track { background: #1e293b; }
+        body.dark-mode ::-webkit-scrollbar-thumb { background: #334155; }
+    </style>
 </head>
-
 <body>
-<!--Video: https://youtu.be/QiKHNuODDqI-->
-    <div class="efekt">
-    <a href="#" class="resim">
-        <img src="1.jpg">
-        <div class="detay">
-        <span class="baslik">Resim 1</span>
-            <span class="bilgi">örnek 1 resim açıklaması buraya gelecek.</span>
-        </div>
-    </a>
-     <a href="#" class="resim">
-        <img src="2.jpg">
-        <div class="detay">
-        <span class="baslik">Resim 2</span>
-            <span class="bilgi">örnek 2 resim açıklaması buraya gelecek.</span>
-        </div>
-    </a>
-     <a href="#" class="resim">
-        <img src="3.jpg">
-        <div class="detay">
-        <span class="baslik">Resim 3</span>
-            <span class="bilgi">örnek 3 resim açıklaması buraya gelecek.</span>
-        </div>
-    </a>
-     <a href="#" class="resim">
-        <img src="4.jpg">
-        <div class="detay">
-        <span class="baslik">Resim 4</span>
-            <span class="bilgi">örnek 4 resim açıklaması buraya gelecek.</span>
-        </div>
-    </a>
-    </div>
-    
-</body>
 
+    <!-- ===== HEADER ===== -->
+    <header class="header" id="header">
+        <div class="container">
+            <div class="header-content">
+                <div class="logo">
+                    <a href="#">
+                        <span class="logo-icon" style="font-size:24px;">🛒</span>
+                        <span class="logo-text">VITAL<span>SHOP</span></span>
+                    </a>
+                </div>
+                <nav class="nav-menu" id="navMenu">
+                    <ul>
+                        <li><a href="#" onclick="scrollToSection('hero')">Ana Sayfa</a></li>
+                        <li><a href="#" onclick="scrollToSection('products')">Ürünler</a></li>
+                        <li><a href="#" onclick="scrollToSection('footer')">İletişim</a></li>
+                    </ul>
+                </nav>
+                <div class="header-actions">
+                    <button onclick="toggleDarkMode()" title="Karanlık Mod">
+                        <i class="fas fa-moon" id="darkIcon"></i>
+                    </button>
+                    <button onclick="openCart()" class="cart-btn" title="Sepet">
+                        <i class="fas fa-shopping-cart"></i>
+                        <span class="cart-count show" id="cartCount">0</span>
+                    </button>
+                    <button class="menu-btn" onclick="toggleMenu()" title="Menü">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Mobil Menü Overlay -->
+    <div class="menu-overlay" id="menuOverlay" onclick="toggleMenu()"></div>
+
+    <!-- ===== HERO ===== -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content">
+                <div class="hero-text">
+                    <span class="hero-badge">🔔 Yeni Sezon</span>
+                    <h1>Premium <span>Elektronik</span> Ürünler</h1>
+                    <p>Kaliteli, güvenilir ve uygun fiyatlı elektronik bileşenler tek adreste.</p>
+                    <div class="hero-buttons">
+                        <a href="#" class="btn btn-primary" onclick="scrollToSection('products')">
+                            <i class="fas fa-shopping-bag"></i> Alışverişe Başla
+                        </a>
+                        <button class="btn btn-outline" onclick="openCart()">
+                            <i class="fas fa-shopping-cart"></i> Sepetim
+                        </button>
+                        <!-- PDF İndirme Butonu - Sepet doluysa aktif olur -->
+                        <button class="btn btn-success" onclick="pdfIndir()" id="pdfBtn">
+                            <i class="fas fa-file-pdf"></i> PDF İndir
+                        </button>
+                    </div>
+                    <div class="hero-stats">
+                        <div class="stat">
+                            <span class="stat-number">13+</span>
+                            <span class="stat-label">Ürün</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">100+</span>
+                            <span class="stat-label">Mutlu Müşteri</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-number">4.9</span>
+                            <span class="stat-label">⭐ Puan</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-image">
+                    <img src="https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=600&h=600&fit=crop" alt="Hero">
+                    <div class="floating-card card-1">
+                        <i class="fas fa-microchip"></i>
+                        <span>PCB Kart</span>
+                    </div>
+                    <div class="floating-card card-2">
+                        <i class="fas fa-lightbulb"></i>
+                        <span>LED Panel</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== KATEGORİLER ===== -->
+    <section class="categories">
+        <div class="container">
+            <div class="section-header">
+                <h2>📂 Kategoriler</h2>
+                <a href="#" class="view-all" onclick="resetFilters()">Tümünü Gör <i class="fas fa-arrow-right"></i></a>
+            </div>
+            <div class="categories-grid" id="categoriesGrid"></div>
+        </div>
+    </section>
+
+    <!-- ===== ÜRÜNLER ===== -->
+    <section class="featured-products" id="products">
+        <div class="container">
+            <div class="section-header">
+                <h2 id="productsTitle">⭐ Öne Çıkan Ürünler</h2>
+                <span style="font-size:13px;color:#64748b;" id="productCount"></span>
+            </div>
+            <div class="products-grid" id="productsGrid"></div>
+        </div>
+    </section>
+
+    <!-- ===== BANNER ===== -->
+    <section class="banner">
+        <div class="container">
+            <div class="banner-content">
+                <div class="banner-text">
+                    <span class="banner-badge">📦 Özel Fırsat</span>
+                    <h2>İlk Siparişine <span>%10 İndirim</span></h2>
+                    <p>Yeni müşterilere özel! İlk alışverişinde %10 indirim kazan.</p>
+                    <a href="#" class="btn btn-primary">Hemen Katıl</a>
+                </div>
+                <div class="banner-image">
+                    <i class="fas fa-gift"></i>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ===== FOOTER ===== -->
+    <footer class="footer" id="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <h3>🛒 VITAL SHOP</h3>
+                    <p>Premium elektronik bileşenler ve profesyonel PCB tasarım hizmetleri.</p>
+                    <div class="social-links">
+                        <a href="#"><i class="fab fa-instagram"></i></a>
+                        <a href="#"><i class="fab fa-youtube"></i></a>
+                        <a href="#"><i class="fab fa-github"></i></a>
+                        <a href="#"><i class="fab fa-linkedin"></i></a>
+                    </div>
+                </div>
+                <div class="footer-links">
+                    <h4>Hızlı Linkler</h4>
+                    <ul>
+                        <li><a href="#" onclick="scrollToSection('hero')">Ana Sayfa</a></li>
+                        <li><a href="#" onclick="scrollToSection('products')">Ürünler</a></li>
+                        <li><a href="#" onclick="scrollToSection('footer')">İletişim</a></li>
+                    </ul>
+                </div>
+                <div class="footer-links">
+                    <h4>Müşteri Hizmetleri</h4>
+                    <ul>
+                        <li><a href="#">Sık Sorulan Sorular</a></li>
+                        <li><a href="#">Gizlilik Politikası</a></li>
+                        <li><a href="#">Teslimat Koşulları</a></li>
+                        <li><a href="#">İade Politikası</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>İletişim</h4>
+                    <p><i class="fas fa-envelope"></i> info@vitalshop.com</p>
+                    <p><i class="fas fa-phone"></i> +90 555 123 4567</p>
+                    <p><i class="fas fa-map-marker-alt"></i> İstanbul, Türkiye</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 VITAL SHOP. Tüm hakları saklıdır.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ============================================================= -->
+    <!-- ===== ÜRÜN DETAY MODAL ===== -->
+    <!-- ============================================================= -->
+    <div class="modal-overlay" id="productModal" onclick="if(event.target===this) closeModal()">
+        <div class="modal-content">
+            <div class="modal-close" onclick="closeModal()">✕</div>
+            <div class="big-image" id="modalImage">
+                <img src="" alt="" id="modalImg">
+            </div>
+            <h2 id="modalTitle">Ürün Adı</h2>
+            <p class="desc" id="modalDesc">Açıklama</p>
+            <div class="price" id="modalPrice">100 TL</div>
+            
+            <!-- Özellik Seçenekleri -->
+            <div id="modalOptions" class="modal-options"></div>
+            
+            <!-- Adet Seçici -->
+            <div class="quantity">
+                <span style="font-weight:600;">Adet:</span>
+                <button onclick="changeQuantity(-1)">−</button>
+                <span id="modalQuantity" style="font-size:20px;font-weight:700;min-width:30px;text-align:center;">1</span>
+                <button onclick="changeQuantity(1)">+</button>
+            </div>
+            
+            <button class="add-to-cart" onclick="addToCartFromModal()">
+                🛒 Sepete Ekle
+            </button>
+        </div>
+    </div>
+
+    <!-- ============================================================= -->
+    <!-- ===== JAVASCRIPT ===== -->
+    <!-- ============================================================= -->
+    <script>
+        // =============================================================
+        // AÇIKLAMA: Ürün verileri - 13 ürün
+        // =============================================================
+        const products = [
+            { 
+                id: 1, ad: 'PCB Kart', fiyat: 100, 
+                aciklama: 'FR4 çift katmanlı profesyonel PCB kart',
+                img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '⭐ Popüler', badgeClass: 'populer',
+                ozellikler: [
+                    { ad: 'Tek Katman', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Çift Katman', fiyat: 50, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '4 Katman', fiyat: 150, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 2, ad: 'LED Panel', fiyat: 25, 
+                aciklama: 'RGB LED panel gösterge modülü',
+                img: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '💎 Premium', badgeClass: 'premium',
+                ozellikler: [
+                    { ad: 'Kırmızı', fiyat: 0, img: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Yeşil', fiyat: 0, img: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Mavi', fiyat: 10, img: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 3, ad: 'Jumper Kablo', fiyat: 60, 
+                aciklama: '10\'lu jumper kablo seti',
+                img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=400&h=400&fit=crop&crop=center',
+                kategori: 'kablo', badge: '🔥 Çok Satan', badgeClass: 'cok-satan',
+                ozellikler: [
+                    { ad: '10cm', fiyat: 0, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '20cm', fiyat: 15, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '30cm', fiyat: 25, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 4, ad: 'USB Adaptör', fiyat: 35, 
+                aciklama: '5V 2A hızlı şarj adaptörü',
+                img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '💰 İndirim', badgeClass: 'indirim',
+                ozellikler: [
+                    { ad: 'Beyaz', fiyat: 0, img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Siyah', fiyat: 0, img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Kırmızı', fiyat: 5, img: 'https://images.unsplash.com/photo-1586953208448-b95a79798f07?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 5, ad: 'LCD Ekran', fiyat: 85, 
+                aciklama: '16x2 karakter LCD ekran modülü',
+                img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '✨ Yeni', badgeClass: 'yeni',
+                ozellikler: [
+                    { ad: 'Mavi', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Yeşil', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'RGB', fiyat: 25, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 6, ad: 'USB-C Kablo', fiyat: 20, 
+                aciklama: 'USB-C hızlı şarj kablosu',
+                img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=400&h=400&fit=crop&crop=center',
+                kategori: 'kablo', badge: '💸 Fırsat', badgeClass: 'indirim',
+                ozellikler: [
+                    { ad: '1m', fiyat: 0, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '2m', fiyat: 10, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '3m', fiyat: 20, img: 'https://images.unsplash.com/photo-1540959733332-eab4deabeeaf?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 7, ad: 'Proje Kutusu', fiyat: 55, 
+                aciklama: 'Plastik proje muhafaza kutusu',
+                img: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=400&h=400&fit=crop&crop=center',
+                kategori: 'aksesuar', badge: '⭐ Popüler', badgeClass: 'populer',
+                ozellikler: [
+                    { ad: 'Küçük', fiyat: 0, img: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Orta', fiyat: 15, img: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Büyük', fiyat: 30, img: 'https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 8, ad: 'Direnç Seti', fiyat: 40, 
+                aciklama: '400 adet çeşitli direnç seti',
+                img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '🔥 Çok Satan', badgeClass: 'cok-satan',
+                ozellikler: [
+                    { ad: '1/4W', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '1/2W', fiyat: 10, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '1W', fiyat: 20, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 9, ad: 'Sıcaklık Sensörü', fiyat: 30, 
+                aciklama: 'Dijital sıcaklık ve nem sensörü',
+                img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&h=400&fit=crop&crop=center',
+                kategori: 'sensor', badge: '✨ Yeni', badgeClass: 'yeni',
+                ozellikler: [
+                    { ad: 'DHT11', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'DHT22', fiyat: 15, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'DS18B20', fiyat: 25, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 10, ad: 'Step Motor', fiyat: 75, 
+                aciklama: 'NEMA 17 step motor',
+                img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=400&h=400&fit=crop&crop=center',
+                kategori: 'motor', badge: '💎 Premium', badgeClass: 'premium',
+                ozellikler: [
+                    { ad: '1.8°', fiyat: 0, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '0.9°', fiyat: 20, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '0.45°', fiyat: 35, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 11, ad: 'DC Motor', fiyat: 45, 
+                aciklama: 'DC motor ve dişli kutusu',
+                img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=400&h=400&fit=crop&crop=center',
+                kategori: 'motor', badge: '⭐ En Çok Satan', badgeClass: 'cok-satan',
+                ozellikler: [
+                    { ad: '6V', fiyat: 0, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '12V', fiyat: 15, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '24V', fiyat: 30, img: 'https://images.unsplash.com/photo-1558618666-fcd25c85f1c5?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 12, ad: 'Servo Motor', fiyat: 55, 
+                aciklama: 'MG995 servo motor',
+                img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=400&h=400&fit=crop&crop=center',
+                kategori: 'motor', badge: '💰 İndirim', badgeClass: 'indirim',
+                ozellikler: [
+                    { ad: 'SG90', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'MG995', fiyat: 20, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'DS3218', fiyat: 35, img: 'https://images.unsplash.com/photo-1581092335875-2d9a7c0a7b8a?w=200&h=200&fit=crop&crop=center' }
+                ]
+            },
+            { 
+                id: 13, ad: 'Özel PCB Tasarımı', fiyat: 250, 
+                aciklama: 'Size özel profesyonel PCB tasarım hizmeti',
+                img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=400&h=400&fit=crop&crop=center',
+                kategori: 'elektronik', badge: '💎 Premium', badgeClass: 'premium',
+                ozellikler: [
+                    { ad: 'Tek Katman', fiyat: 0, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: 'Çift Katman', fiyat: 100, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '4 Katman', fiyat: 250, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' },
+                    { ad: '6 Katman', fiyat: 400, img: 'https://images.unsplash.com/photo-1581092160607-ee22621dd758?w=200&h=200&fit=crop&crop=center' }
+                ]
+            }
+        ];
+
+        // =============================================================
+        // AÇIKLAMA: Sepet - LocalStorage ile kalıcı
+        // =============================================================
+        let cart = JSON.parse(localStorage.getItem('vitalCart')) || [];
+
+        // =============================================================
+        // AÇIKLAMA: Modal değişkenleri
+        // =============================================================
+        let modalProduct = null;
+        let modalQuantity = 1;
+        let selectedOption = 0;
+        let currentFilter = '';
+
+        // =============================================================
+        // AÇIKLAMA: Sayfa yüklendiğinde çalışır
+        // =============================================================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadCategories();
+            loadProducts();
+            updateCartUI();
+            updatePDFButton();
+        });
+
+        // =============================================================
+        // AÇIKLAMA: Kategorileri yükle
+        // =============================================================
+        function loadCategories() {
+            const grid = document.getElementById('categoriesGrid');
+            const categories = [
+                { icon: '💻', name: 'Elektronik' },
+                { icon: '🔌', name: 'Kablo' },
+                { icon: '⚙️', name: 'Motor' },
+                { icon: '📡', name: 'Sensör' },
+                { icon: '🎒', name: 'Aksesuar' },
+                { icon: '🏷️', name: 'Etiket' }
+            ];
+            
+            grid.innerHTML = categories.map(cat => `
+                <div class="category-card" onclick="filterProducts('${cat.name.toLowerCase()}')">
+                    <span class="icon">${cat.icon}</span>
+                    <h4>${cat.name}</h4>
+                </div>
+            `).join('');
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Ürünleri yükle - kategori filtresi ile
+        // =============================================================
+        function loadProducts(filter = '') {
+            const grid = document.getElementById('productsGrid');
+            const title = document.getElementById('productsTitle');
+            const count = document.getElementById('productCount');
+            
+            let filtered = products;
+            if (filter) {
+                filtered = products.filter(p => p.kategori === filter);
+                currentFilter = filter;
+                title.textContent = `📂 ${filter.charAt(0).toUpperCase() + filter.slice(1)}`;
+            } else {
+                currentFilter = '';
+                title.textContent = '⭐ Öne Çıkan Ürünler';
+            }
+            
+            count.textContent = `${filtered.length} ürün`;
+            
+            if (filtered.length === 0) {
+                grid.innerHTML = `
+                    <div style="grid-column:1/-1;text-align:center;padding:30px;color:#64748b;">
+                        <div style="font-size:40px;margin-bottom:8px;">🔍</div>
+                        <h3 style="font-size:16px;">Bu kategoride ürün yok</h3>
+                        <button class="btn btn-primary" onclick="resetFilters()" style="margin-top:12px;">
+                            Tüm Ürünleri Göster
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            grid.innerHTML = filtered.map(p => `
+                <div class="product-card" onclick="openProductModal(${p.id})">
+                    <div class="image-wrapper">
+                        <img src="${p.img}" alt="${p.ad}" loading="lazy">
+                        ${p.badge ? `<span class="badge ${p.badgeClass}">${p.badge}</span>` : ''}
+                    </div>
+                    <div class="content">
+                        <h3>${p.ad}</h3>
+                        <div class="desc">${p.aciklama.substring(0, 35)}${p.aciklama.length > 35 ? '...' : ''}</div>
+                        <div class="price-row">
+                            <span class="price">${p.fiyat} TL</span>
+                            <button class="add-btn" onclick="event.stopPropagation(); quickAdd(${p.id})">Sepete Ekle</button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Filtreleme işlemleri
+        // =============================================================
+        function filterProducts(category) {
+            loadProducts(category);
+            scrollToSection('products');
+        }
+
+        function resetFilters() {
+            loadProducts('');
+            scrollToSection('products');
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Hızlı sepete ekle (ürün kartından)
+        // =============================================================
+        function quickAdd(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            
+            const existing = cart.find(item => item.id === id);
+            if (existing) {
+                existing.adet += 1;
+            } else {
+                cart.push({
+                    id: product.id,
+                    ad: product.ad,
+                    fiyat: product.fiyat,
+                    img: product.img,
+                    adet: 1,
+                    ozellik: product.ozellikler ? product.ozellikler[0].ad : 'Standart'
+                });
+            }
+            
+            saveCart();
+            updateCartUI();
+            showToast(`${product.ad} sepete eklendi ✅`);
+            updatePDFButton();
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Sepet işlemleri
+        // =============================================================
+        function saveCart() {
+            localStorage.setItem('vitalCart', JSON.stringify(cart));
+        }
+
+        function getCartCount() {
+            return cart.reduce((sum, item) => sum + item.adet, 0);
+        }
+
+        function getCartTotal() {
+            return cart.reduce((sum, item) => sum + (item.fiyat * item.adet), 0);
+        }
+
+        function updateCartUI() {
+            const count = getCartCount();
+            const el = document.getElementById('cartCount');
+            el.textContent = count;
+            el.classList.toggle('show', count > 0);
+        }
+
+        function updatePDFButton() {
+            const btn = document.getElementById('pdfBtn');
+            if (cart.length > 0) {
+                btn.style.display = 'inline-flex';
+                btn.innerHTML = '<i class="fas fa-file-pdf"></i> PDF İndir (' + getCartCount() + ' ürün)';
+            } else {
+                btn.style.display = 'none';
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Sepeti aç (mobilde görüntüle)
+        // =============================================================
+        function openCart() {
+            if (cart.length === 0) {
+                showToast('🛒 Sepetiniz boş');
+                return;
+            }
+            
+            let message = '🛍️ SEPETİM\n' + '═'.repeat(30) + '\n\n';
+            let total = 0;
+            cart.forEach((item, i) => {
+                const itemTotal = item.fiyat * item.adet;
+                total += itemTotal;
+                message += `${i+1}. ${item.ad}\n`;
+                message += `   ${item.ozellik || 'Standart'} x${item.adet} = ${itemTotal} TL\n\n`;
+            });
+            message += '═'.repeat(30) + '\n';
+            message += `📦 TOPLAM: ${total} TL\n\n`;
+            message += '✅ Siparişi onaylamak için "Tamam" deyin.\n';
+            message += '🗑️ Sepeti temizlemek için "İptal" deyin.';
+            
+            if (confirm(message)) {
+                // Sipariş onaylandı
+                const siparisMetni = cart.map((item, i) => {
+                    return `${i+1}. ${item.ad} - ${item.ozellik || 'Standart'} x${item.adet} = ${item.fiyat * item.adet} TL`;
+                }).join('\n');
+                
+                alert(
+                    '✅ SİPARİŞİNİZ ALINDI!\n\n' +
+                    '📋 Sipariş Detayları:\n' +
+                    '═'.repeat(30) + '\n' +
+                    siparisMetni + '\n' +
+                    '═'.repeat(30) + '\n' +
+                    `💰 Toplam: ${getCartTotal()} TL\n\n` +
+                    '📧 Sipariş onayı e-posta ile gönderilecektir.\n' +
+                    '🙏 Teşekkür ederiz!'
+                );
+                
+                // PDF otomatik oluştur
+                pdfIndir();
+                
+                // Sepeti temizle (opsiyonel)
+                // cart = [];
+                // saveCart();
+                // updateCartUI();
+                // updatePDFButton();
+            } else {
+                // Sepeti temizle
+                if (confirm('Sepeti temizlemek istediğinize emin misiniz?')) {
+                    cart = [];
+                    saveCart();
+                    updateCartUI();
+                    updatePDFButton();
+                    showToast('🗑️ Sepet temizlendi');
+                }
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Sepetten ürün çıkar (modalda kullanılır)
+        // =============================================================
+        function removeFromCart(id) {
+            const index = cart.findIndex(item => item.id === id);
+            if (index === -1) return;
+            
+            if (cart[index].adet > 1) {
+                cart[index].adet -= 1;
+            } else {
+                cart.splice(index, 1);
+            }
+            
+            saveCart();
+            updateCartUI();
+            updatePDFButton();
+            showToast('Ürün sepetten çıkarıldı');
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Sepeti tamamen temizle
+        // =============================================================
+        function clearCart() {
+            if (cart.length === 0) {
+                showToast('Sepet zaten boş');
+                return;
+            }
+            if (confirm('Sepeti tamamen temizlemek istediğinize emin misiniz?')) {
+                cart = [];
+                saveCart();
+                updateCartUI();
+                updatePDFButton();
+                showToast('🗑️ Sepet temizlendi');
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Ürün detay modalını aç
+        // =============================================================
+        function openProductModal(id) {
+            const product = products.find(p => p.id === id);
+            if (!product) return;
+            
+            modalProduct = product;
+            modalQuantity = 1;
+            selectedOption = 0;
+            
+            document.getElementById('modalImg').src = product.img;
+            document.getElementById('modalTitle').textContent = product.ad;
+            document.getElementById('modalDesc').textContent = product.aciklama;
+            document.getElementById('modalPrice').textContent = product.fiyat + ' TL';
+            document.getElementById('modalQuantity').textContent = '1';
+            
+            // Özellikleri göster
+            const optionsContainer = document.getElementById('modalOptions');
+            if (product.ozellikler && product.ozellikler.length > 0) {
+                optionsContainer.innerHTML = product.ozellikler.map((oz, i) => `
+                    <div class="option-btn ${i === 0 ? 'selected' : ''}" onclick="selectOption(${i})" data-index="${i}">
+                        <img src="${oz.img}" alt="${oz.ad}">
+                        ${oz.ad}
+                        <span class="price-tag">${oz.fiyat > 0 ? `+${oz.fiyat} TL` : 'Standart'}</span>
+                    </div>
+                `).join('');
+                optionsContainer.style.display = 'grid';
+            } else {
+                optionsContainer.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:#64748b;font-size:13px;">Bu ürün için özellik seçeneği yok.</div>';
+                optionsContainer.style.display = 'block';
+            }
+            
+            document.getElementById('productModal').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Modalda özellik seç
+        // =============================================================
+        function selectOption(index) {
+            selectedOption = index;
+            document.querySelectorAll('.option-btn').forEach((btn, i) => {
+                btn.classList.toggle('selected', i === index);
+            });
+            
+            const product = modalProduct;
+            const option = product.ozellikler[index];
+            const totalPrice = (product.fiyat + option.fiyat) * modalQuantity;
+            document.getElementById('modalPrice').textContent = totalPrice + ' TL';
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Modalda adet değiştir
+        // =============================================================
+        function changeQuantity(delta) {
+            modalQuantity = Math.max(1, modalQuantity + delta);
+            document.getElementById('modalQuantity').textContent = modalQuantity;
+            
+            if (modalProduct) {
+                const option = modalProduct.ozellikler[selectedOption];
+                const totalPrice = (modalProduct.fiyat + (option ? option.fiyat : 0)) * modalQuantity;
+                document.getElementById('modalPrice').textContent = totalPrice + ' TL';
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Modaldan sepete ekle
+        // =============================================================
+        function addToCartFromModal() {
+            if (!modalProduct) return;
+            
+            const option = modalProduct.ozellikler[selectedOption];
+            const fiyat = modalProduct.fiyat + (option ? option.fiyat : 0);
+            const ozellikAdi = option ? option.ad : 'Standart';
+            
+            const existing = cart.find(item => item.id === modalProduct.id);
+            if (existing) {
+                existing.adet += modalQuantity;
+            } else {
+                cart.push({
+                    id: modalProduct.id,
+                    ad: modalProduct.ad,
+                    fiyat: fiyat,
+                    img: modalProduct.img,
+                    adet: modalQuantity,
+                    ozellik: ozellikAdi
+                });
+            }
+            
+            saveCart();
+            updateCartUI();
+            updatePDFButton();
+            closeModal();
+            showToast(`${modalProduct.ad} sepete eklendi ✅ (${modalQuantity} adet)`);
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Modalı kapat
+        // =============================================================
+        function closeModal() {
+            document.getElementById('productModal').classList.remove('show');
+            document.body.style.overflow = '';
+            modalProduct = null;
+        }
+
+        // =============================================================
+        // AÇIKLAMA: PDF İndir - TÜM SİPARİŞİ PDF OLARAK KAYDET
+        // =============================================================
+        function pdfIndir() {
+            if (cart.length === 0) {
+                showToast('⚠️ Sepet boş! PDF oluşturulamaz.');
+                return;
+            }
+            
+            showToast('📄 PDF oluşturuluyor...');
+            
+            // PDF içeriğini oluştur
+            const content = document.createElement('div');
+            content.style.padding = '30px';
+            content.style.fontFamily = 'Inter, Arial, sans-serif';
+            content.style.background = '#ffffff';
+            content.style.maxWidth = '800px';
+            content.style.margin = '0 auto';
+            content.style.color = '#1e293b';
+            
+            const now = new Date();
+            const tarih = now.toLocaleDateString('tr-TR', {
+                day: '2-digit', month: 'long', year: 'numeric'
+            });
+            const saat = now.toLocaleTimeString('tr-TR', {
+                hour: '2-digit', minute: '2-digit'
+            });
+            
+            // HTML içeriği
+            content.innerHTML = `
+                <div style="text-align:center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 20px;">
+                    <div style="font-size: 40px; margin-bottom: 4px;">🛒</div>
+                    <h1 style="color: #1e293b; font-size: 28px; font-weight: 800; margin: 0;">
+                        VITAL<span style="color:#2563eb;">SHOP</span>
+                    </h1>
+                    <p style="color: #64748b; font-size: 14px; margin: 4px 0 0;">
+                        Sipariş Özeti • ${tarih} • ${saat}
+                    </p>
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <p style="font-weight: 600; font-size: 16px; margin-bottom: 8px;">📋 Sipariş Detayları</p>
+                    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+                        <thead>
+                            <tr style="background: #f1f5f9;">
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">#</th>
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Ürün</th>
+                                <th style="padding: 10px 12px; text-align: left; border-bottom: 2px solid #e2e8f0;">Özellik</th>
+                                <th style="padding: 10px 12px; text-align: center; border-bottom: 2px solid #e2e8f0;">Adet</th>
+                                <th style="padding: 10px 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Fiyat</th>
+                                <th style="padding: 10px 12px; text-align: right; border-bottom: 2px solid #e2e8f0;">Toplam</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${cart.map((item, index) => `
+                                <tr style="border-bottom: 1px solid #f1f5f9;">
+                                    <td style="padding: 10px 12px;">${index + 1}</td>
+                                    <td style="padding: 10px 12px; font-weight: 600;">${item.ad}</td>
+                                    <td style="padding: 10px 12px; color: #64748b;">${item.ozellik || 'Standart'}</td>
+                                    <td style="padding: 10px 12px; text-align: center;">${item.adet}</td>
+                                    <td style="padding: 10px 12px; text-align: right;">${item.fiyat} TL</td>
+                                    <td style="padding: 10px 12px; text-align: right; font-weight: 600; color: #2563eb;">${item.fiyat * item.adet} TL</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div style="border-top: 2px solid #e2e8f0; padding-top: 16px; display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <p style="margin: 0; color: #64748b; font-size: 13px;">
+                            📦 Toplam Ürün: ${getCartCount()} adet
+                        </p>
+                        <p style="margin: 4px 0 0; color: #64748b; font-size: 13px;">
+                            🏷️ Farklı Ürün: ${cart.length} çeşit
+                        </p>
+                    </div>
+                    <div style="text-align: right;">
+                        <div style="font-size: 14px; color: #64748b;">TOPLAM</div>
+                        <div style="font-size: 28px; font-weight: 800; color: #2563eb;">${getCartTotal()} TL</div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px; padding-top: 16px; border-top: 2px solid #e2e8f0; display: grid; grid-template-columns: 1fr 1fr; gap: 16px; font-size: 13px; color: #64748b;">
+                    <div>
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📦 Teslimat Adresi</p>
+                        <p style="margin: 2px 0;">VITAL SHOP</p>
+                        <p style="margin: 2px 0;">İstanbul, Türkiye</p>
+                    </div>
+                    <div style="text-align: right;">
+                        <p style="font-weight: 600; color: #1e293b; margin-bottom: 4px;">📞 İletişim</p>
+                        <p style="margin: 2px 0;">info@vitalshop.com</p>
+                        <p style="margin: 2px 0;">+90 555 123 4567</p>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 24px; text-align: center; font-size: 12px; color: #94a3b8; border-top: 1px solid #e2e8f0; padding-top: 16px;">
+                    Bu belge VITAL SHOP tarafından otomatik oluşturulmuştur.
+                    <br>Sipariş numaranız: #VS-${String(now.getFullYear()).slice(-2)}${String(now.getMonth()+1).padStart(2,'0')}${String(now.getDate()).padStart(2,'0')}-${String(Math.floor(Math.random()*10000)).padStart(4,'0')}
+                </div>
+            `;
+            
+            // PDF ayarları
+            const opt = {
+                margin: 10,
+                filename: `VITALSHOP-Siparis-${now.toISOString().slice(0,10)}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { 
+                    scale: 2, 
+                    backgroundColor: '#ffffff',
+                    useCORS: true,
+                    logging: false
+                },
+                jsPDF: { 
+                    unit: 'mm', 
+                    format: 'a4', 
+                    orientation: 'portrait' 
+                },
+                pagebreak: { mode: 'avoid-all' }
+            };
+            
+            // PDF oluştur ve indir
+            html2pdf()
+                .set(opt)
+                .from(content)
+                .save()
+                .then(() => {
+                    showToast('📄 PDF başarıyla indirildi!');
+                })
+                .catch((error) => {
+                    console.error('PDF hatası:', error);
+                    showToast('❌ PDF oluşturulamadı, tekrar deneyin.');
+                });
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Toast mesajı göster
+        // =============================================================
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toast._timeout);
+            toast._timeout = setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Karanlık mod
+        // =============================================================
+        function toggleDarkMode() {
+            document.body.classList.toggle('dark-mode');
+            const icon = document.getElementById('darkIcon');
+            if (document.body.classList.contains('dark-mode')) {
+                icon.className = 'fas fa-sun';
+                localStorage.setItem('darkMode', 'true');
+            } else {
+                icon.className = 'fas fa-moon';
+                localStorage.setItem('darkMode', 'false');
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Mobil menü
+        // =============================================================
+        function toggleMenu() {
+            const menu = document.getElementById('navMenu');
+            const overlay = document.getElementById('menuOverlay');
+            menu.classList.toggle('open');
+            overlay.classList.toggle('show');
+            document.body.style.overflow = menu.classList.contains('open') ? 'hidden' : '';
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Sayfada kaydırma
+        // =============================================================
+        function scrollToSection(id) {
+            const el = document.getElementById(id);
+            if (el) {
+                el.scrollIntoView({ behavior: 'smooth' });
+            }
+            // Mobil menüyü kapat
+            const menu = document.getElementById('navMenu');
+            const overlay = document.getElementById('menuOverlay');
+            if (menu.classList.contains('open')) {
+                menu.classList.remove('open');
+                overlay.classList.remove('show');
+                document.body.style.overflow = '';
+            }
+        }
+
+        // =============================================================
+        // AÇIKLAMA: Header scroll efekti
+        // =============================================================
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('header');
+            if (window.scrollY > 50) {
+                header.classList.add('scrolled');
+            } else {
+                header.classList.remove('scrolled');
+            }
+        });
+
+        // =============================================================
+        // AÇIKLAMA: ESC ile modal kapat
+        // =============================================================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeModal();
+                // Mobil menüyü kapat
+                const menu = document.getElementById('navMenu');
+                const overlay = document.getElementById('menuOverlay');
+                if (menu.classList.contains('open')) {
+                    menu.classList.remove('open');
+                    overlay.classList.remove('show');
+                    document.body.style.overflow = '';
+                }
+            }
+        });
+
+        // =============================================================
+        // AÇIKLAMA: Karanlık mod tercihini yükle
+        // =============================================================
+        if (localStorage.getItem('darkMode') === 'true') {
+            document.body.classList.add('dark-mode');
+            document.getElementById('darkIcon').className = 'fas fa-sun';
+        }
+
+        // =============================================================
+        // AÇIKLAMA: PDF butonunu güncelle (sepet değişince)
+        // =============================================================
+        // Her sepet değişiminde updatePDFButton çağrılır
+        console.log('✅ VITAL SHOP hazır! Mobil uyumlu ve PDF özellikli.');
+        console.log('📦 Sepette ' + getCartCount() + ' ürün var.');
+    </script>
+
+</body>
 </html>
